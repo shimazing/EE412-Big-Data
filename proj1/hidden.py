@@ -11,17 +11,43 @@ tf.app.flags.DEFINE_string('train', None,
                            'File containing the training data (labels & features).')
 tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
-tf.app.flags.DEFINE_integer('num_epochs', 5000,
+tf.app.flags.DEFINE_integer('num_epochs', 2000,
                             'Number of passes over the training data.')
 tf.app.flags.DEFINE_integer('num_hidden', 20,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_boolean('num_hidden2', 10,
+tf.app.flags.DEFINE_integer('num_hidden2', 15,
                             'Number of nodes in the second hidden layer.')
+tf.app.flags.DEFINE_integer('num_hidden3', 15,
+                            'Number of nodes in the third hidden layer.')
 FLAGS = tf.app.flags.FLAGS
 
-# Extract numpy representations of the labels and features given rows consisting of:
+def binary_encoding(datum):
+    #datum is length 10 1-dim array
+    encoded = np.zeros(52)
+    cards = datum.reshape(5, 2)
+    for suit, rank in np.array(cards):
+        encoded[(suit - 1)* 13 + rank - 1] = 1
+    return encoded
+
+def encoding_data(X):
+    encoded_data = np.zeros((X.shape[0], 52))
+    for i, datum in enumerate(X):
+        print(i)
+        encoded_data[i] = binary_encoding(datum)
+    return encoded_data
+
+
+
+def data_augment(one):
+    """
+    one data will be 5! data (permutated)
+
+    """
+    np.array(perm(one.reshape(5,2)))
+    pass
+
 #   label, feat_0, feat_1, ..., feat_n
 def extract_data(filename):
 
@@ -77,6 +103,10 @@ def main(argv=None):
     train_data, train_labels = extract_data(train_data_filename)
     test_data, test_labels = extract_data(test_data_filename)
 
+    # one hot encoding
+    train_data = encoding_data(train_data)
+    test_data = encoding_data(test_data)
+
     # Get the shape of the training data.
     train_size,num_features = train_data.shape
 
@@ -86,6 +116,7 @@ def main(argv=None):
     # Get the size of layer one.
     num_hidden = FLAGS.num_hidden
     num_hidden2 = FLAGS.num_hidden2
+    num_hidden3 = FLAGS.num_hidden3
 
     # This is where training samples and labels are fed to the graph.
     # These placeholder nodes will be fed a batch of training data at each
@@ -121,16 +152,25 @@ def main(argv=None):
     # The second hidden layer.
     hidden2 = tf.nn.relu(tf.matmul(hidden, w_hidden2) + b_hidden2)
 
+    w_hidden3 = init_weights(
+        [num_hidden2, num_hidden3],
+        'positive')
+
+    b_hidden3 = init_weights([1, num_hidden3], 'positive')
+
+    # The third hidden layer
+    hidden3 = tf.nn.relu(tf.matmul(hidden2, w_hidden3) + b_hidden3)
+
     # Initialize the output weights and biases.
     w_out = init_weights(
-        [num_hidden2, NUM_LABELS],
+        [num_hidden3, NUM_LABELS],
         'positive')#,
         #xavier_params=(num_hidden2, NUM_LABELS))
 
     b_out = init_weights([1,NUM_LABELS],'positive')
 
     # The output layer.
-    y = tf.nn.log_softmax(tf.matmul(hidden2, w_out) + b_out)
+    y = tf.nn.log_softmax(tf.matmul(hidden3, w_out) + b_out)
 
     # Optimization.
     cross_entropy = -tf.reduce_sum(y_*y)
@@ -151,6 +191,7 @@ def main(argv=None):
 
         print(s.run(w_hidden))
         print(s.run(w_hidden2))
+        print(s.run(w_hidden3))
         print(s.run(w_out))
 
         print("Start training")
@@ -173,8 +214,8 @@ def main(argv=None):
             #print("w_hidden", s.run(w_hidden))
             #print("w_hidden2", s.run(w_hidden2))
             #print("w_out", s.run(w_out))
-            print("b_out", s.run(b_out))
-            print("b_hidden", s.run(b_hidden))
+            #print("b_out", s.run(b_out))
+            #print("b_hidden", s.run(b_hidden))
         print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
             train_labels}))
         print("Accuracy:", accuracy.eval(feed_dict={x: test_data, y_:\
