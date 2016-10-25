@@ -11,7 +11,7 @@ tf.app.flags.DEFINE_string('train', None,
                            'File containing the training data (labels & features).')
 tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
-tf.app.flags.DEFINE_integer('num_epochs', 1000,
+tf.app.flags.DEFINE_integer('num_epochs', 5000,
                             'Number of passes over the training data.')
 tf.app.flags.DEFINE_integer('num_hidden', 20,
                             'Number of nodes in the hidden layer.')
@@ -57,12 +57,12 @@ def init_weights(shape, init_method='xavier', xavier_params = (None, None)):
     elif init_method == 'uniform':
         return tf.Variable(tf.random_normal(shape, stddev=0.01, dtype=tf.float32))
     elif init_method == 'positive':
-        return tf.Variable(tf.random_normal(shape, mean=0.1, stddev=0.01,\
+        return tf.Variable(tf.random_normal(shape, mean=0.02, stddev=0.01,\
                                             dtype=tf.float32))
     else: #xavier
         (fan_in, fan_out) = xavier_params
-        low = -4*np.sqrt(6.0/(fan_in + fan_out)) # {sigmoid:4, tanh:1}
-        high = 4*np.sqrt(6.0/(fan_in + fan_out))
+        low = -0.1*np.sqrt(1.0/(fan_in + fan_out)) # {sigmoid:4, tanh:1}
+        high = 0.1*np.sqrt(1.0/(fan_in + fan_out))
         return tf.Variable(tf.random_uniform(shape, minval=low, maxval=high, dtype=tf.float32))
 
 def main(argv=None):
@@ -101,38 +101,40 @@ def main(argv=None):
     # Initialize the hidden weights and biases.
     w_hidden = init_weights(
         [num_features, num_hidden],
-        'xavier',
-        xavier_params=(num_features, num_hidden))
+        'positive')
+       # 'xavier',
+       # xavier_params=(num_features, num_hidden))
 
-    b_hidden = init_weights([1, num_hidden],'zeros')
+    b_hidden = init_weights([1, num_hidden],'positive')
 
     # The hidden layer.
-    hidden = tf.nn.tanh(tf.matmul(x,w_hidden) + b_hidden)
+    hidden = tf.nn.relu(tf.matmul(x,w_hidden) + b_hidden)
 
     w_hidden2 = init_weights(
             [num_hidden, num_hidden2],
-            'xavier',
-            xavier_params=(num_hidden, num_hidden2))
+            'positive')
+            # 'xavier',
+            # xavier_params=(num_hidden, num_hidden2))
 
-    b_hidden2 = init_weights([1,num_hidden2], 'zeros')
+    b_hidden2 = init_weights([1,num_hidden2], 'positive')
 
     # The second hidden layer.
-    hidden2 = tf.nn.tanh(tf.matmul(hidden, w_hidden2) + b_hidden2)
+    hidden2 = tf.nn.relu(tf.matmul(hidden, w_hidden2) + b_hidden2)
 
     # Initialize the output weights and biases.
     w_out = init_weights(
         [num_hidden2, NUM_LABELS],
-        'xavier',
-        xavier_params=(num_hidden2, NUM_LABELS))
+        'positive')#,
+        #xavier_params=(num_hidden2, NUM_LABELS))
 
-    b_out = init_weights([1,NUM_LABELS],'zeros')
+    b_out = init_weights([1,NUM_LABELS],'positive')
 
     # The output layer.
     y = tf.nn.log_softmax(tf.matmul(hidden2, w_out) + b_out)
 
     # Optimization.
     cross_entropy = -tf.reduce_sum(y_*y)
-    train_step = tf.train.GradientDescentOptimizer(0.001).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(0.01).minimize(cross_entropy)
 
     # Evaluation.
     correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
