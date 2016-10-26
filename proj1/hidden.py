@@ -16,7 +16,7 @@ tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
 tf.app.flags.DEFINE_integer('num_epochs', 2000,
                             'Number of passes over the training data.')
-tf.app.flags.DEFINE_integer('num_hidden', 20,
+tf.app.flags.DEFINE_integer('num_hidden', 30,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
@@ -107,8 +107,8 @@ def main(argv=None):
     test_data, test_labels = extract_data(test_data_filename)
 
     # one hot encoding
-    #train_data = encoding_data(train_data)
-    #test_data = encoding_data(test_data)
+    train_data = encoding_data(train_data)
+    test_data = encoding_data(test_data)
 
     # Get the shape of the training data.
     train_size,num_features = train_data.shape
