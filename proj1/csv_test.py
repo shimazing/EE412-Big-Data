@@ -44,7 +44,7 @@ train_y = raw_data[4000:, 10]
 #print(for2[:, [0,2,4,6,8]])
 
 
-#test_X = encoding_data(test_X)
+#test_X = encoding_data:q(test_X)
 #train_X = encoding_data(train_X)
 
 """

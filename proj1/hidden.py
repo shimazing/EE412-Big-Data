@@ -2,6 +2,9 @@ import tensorflow.python.platform
 
 import numpy as np
 import tensorflow as tf
+import itertools
+
+perm = itertools.permutations
 
 # Global variables.
 NUM_LABELS = 10    # The number of labels.
@@ -163,14 +166,14 @@ def main(argv=None):
 
     # Initialize the output weights and biases.
     w_out = init_weights(
-        [num_hidden3, NUM_LABELS],
+        [num_hidden, NUM_LABELS],
         'positive')#,
         #xavier_params=(num_hidden2, NUM_LABELS))
 
     b_out = init_weights([1,NUM_LABELS],'positive')
 
     # The output layer.
-    y = tf.nn.log_softmax(tf.matmul(hidden3, w_out) + b_out)
+    y = tf.nn.log_softmax(tf.matmul(hidden, w_out) + b_out)
 
     # Optimization.
     cross_entropy = -tf.reduce_sum(y_*y)
