@@ -107,8 +107,8 @@ def main(argv=None):
     test_data, test_labels = extract_data(test_data_filename)
 
     # one hot encoding
-    train_data = encoding_data(train_data)
-    test_data = encoding_data(test_data)
+    #train_data = encoding_data(train_data)
+    #test_data = encoding_data(test_data)
 
     # Get the shape of the training data.
     train_size,num_features = train_data.shape
