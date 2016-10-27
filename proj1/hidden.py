@@ -20,7 +20,7 @@ tf.app.flags.DEFINE_integer('num_hidden', 30,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 20,
+tf.app.flags.DEFINE_integer('num_hidden2', 25,
                             'Number of nodes in the second hidden layer.')
 tf.app.flags.DEFINE_integer('num_hidden3', 15,
                             'Number of nodes in the third hidden layer.')
