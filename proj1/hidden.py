@@ -26,6 +26,16 @@ tf.app.flags.DEFINE_integer('num_hidden3', 15,
                             'Number of nodes in the third hidden layer.')
 FLAGS = tf.app.flags.FLAGS
 
+class fullprint:
+    '''context manager for printing full numpy arrays'''
+
+    def __enter__(self):
+        self.opt = np.get_printoptions()
+        np.set_printoptions(threshold=np.nan)
+
+    def __exit__(self, type, value, traceback):
+        np.set_printoptions(**self.opt)
+
 def binary_encoding(datum):
     #datum is length 10 1-dim array
     encoded = np.zeros(52)
@@ -78,6 +88,14 @@ def extract_data(filename):
     # Return a pair of the feature matrix and the one-hot label matrix.
     print(fvecs_np, labels_onehot)
     return fvecs_np,labels_onehot
+
+def result_table(pred, ori):
+    result = np.zeros((10,10)).astype(int)
+    for i, j in zip(pred, ori):
+        result[i,j] += 1
+
+    with fullprint():
+        print(result)
 
 # Init weights method. (Lifted from Delip Rao: http://deliprao.com/archives/100)
 def init_weights(shape, init_method='xavier', xavier_params = (None, None)):
@@ -219,10 +237,21 @@ def main(argv=None):
             #print("w_out", s.run(w_out))
             #print("b_out", s.run(b_out))
             #print("b_hidden", s.run(b_hidden))
+
+        # Print out train and test accuracy
         print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
             train_labels}))
         print("Accuracy:", accuracy.eval(feed_dict={x: test_data, y_:\
             test_labels}))
+
+        # result table
+        pred_train_y, real_train_y = s.run([tf.argmax(y,1),tf.argmax(y_,1)],\
+                feed_dict={x: train_data, y_: train_labels})
+        pred_test_y, real_test_y = s.run([tf.argmax(y,1), tf.argmax(y_,1)],\
+                feed_dict={x: test_data, y_: test_labels})
+        result_table(pred_train_y, real_train_y)
+        result_table(pred_test_y, real_test_y)
+
 
 if __name__ == '__main__':
     tf.app.run()
