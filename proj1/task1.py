@@ -24,7 +24,6 @@ def main(args=None):
     num_hidden2 = FLAGS.num_hidden2
 
     X, _ = extract_data(test_filename, is_train=False)
-    print(X)
     X = encode_data(X)
 
     num_test, num_features = X.shape
