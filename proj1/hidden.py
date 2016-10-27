@@ -223,19 +223,18 @@ def main(argv=None):
 
             offset = (step * BATCH_SIZE) % train_size
             #print("index", offset, offset+BATCH_SIZE)
-            batch_data = train_data[offset:(offset + BATCH_SIZE), :]
-            batch_labels = train_labels[offset:(offset + BATCH_SIZE)]
+            choice = np.random.choice(range(train_size), BATCH_SIZE)
+            #batch_data = train_data[offset:(offset + BATCH_SIZE), :]
+            #batch_labels = train_labels[offset:(offset + BATCH_SIZE)]
+            batch_data = train_data[choice, :]
+            batch_labels = train_labels[choice]
             train_step.run(feed_dict={x: batch_data, y_: batch_labels})
             if verbose and offset >= train_size-BATCH_SIZE:
                 print(s.run([hidden, cross_entropy,y,tf.argmax(y_,1),accuracy],
-                              feed_dict={x: batch_data, y_:batch_labels}))
-                #print("accuracy", accuracy.eval(feed_dict={x: batch_data, y_:\
-                        #batch_labels}))
-            #print("w_hidden", s.run(w_hidden))
-            #print("w_hidden2", s.run(w_hidden2))
-            #print("w_out", s.run(w_out))
-            #print("b_out", s.run(b_out))
-            #print("b_hidden", s.run(b_hidden))
+                              feed_dict={x: batch_data, y_: batch_labels}))
+            acc = accuracy.eval(feed_dict={x: batch_data, y_: batch_labels})
+            if acc > 0.8 and step % 20 == 0:
+                print(step, acc)
 
         # Print out train and test accuracy
         print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
