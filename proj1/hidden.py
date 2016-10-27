@@ -112,7 +112,20 @@ def main(argv=None):
 
     # Extract it into numpy arrays.
     train_data, train_labels = extract_data(train_data_filename)
-    test_data, test_labels = extract_data(test_data_filename)
+    #test_data, test_labels = extract_data(test_data_filename)
+
+
+    # randomly split train and test data
+    train_size = train_data.shape[0]
+    test_size = int(train_size * 0.1)
+    indices = np.random.permutation(train_size)
+    test_idx, train_idx = indices[:test_size], indices[test_size:]
+
+    test_data = train_data[test_idx,:]
+    test_labels = train_labels[test_idx]
+
+    train_data = train_data[train_idx,:]
+    train_labels = train_labels[train_idx]
 
     # one hot encoding
     train_data = encoding_data(train_data)
