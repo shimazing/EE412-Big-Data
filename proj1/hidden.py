@@ -14,13 +14,13 @@ tf.app.flags.DEFINE_string('train', None,
                            'File containing the training data (labels & features).')
 tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
-tf.app.flags.DEFINE_integer('num_epochs', 1000,
+tf.app.flags.DEFINE_integer('num_epochs', 1500,
                             'Number of passes over the training data.')
-tf.app.flags.DEFINE_integer('num_hidden', 30,
+tf.app.flags.DEFINE_integer('num_hidden', 35,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 25,
+tf.app.flags.DEFINE_integer('num_hidden2', 30,
                             'Number of nodes in the second hidden layer.')
 tf.app.flags.DEFINE_integer('num_hidden3', 15,
                             'Number of nodes in the third hidden layer.')
