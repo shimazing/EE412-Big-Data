@@ -47,7 +47,6 @@ def binary_encoding(datum):
 def encoding_data(X):
     encoded_data = np.zeros((X.shape[0], 52))
     for i, datum in enumerate(X):
-        print(i)
         encoded_data[i] = binary_encoding(datum)
     return encoded_data
 
