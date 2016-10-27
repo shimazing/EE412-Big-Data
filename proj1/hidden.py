@@ -18,10 +18,12 @@ tf.app.flags.DEFINE_integer('num_hidden', 35,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 30,
+tf.app.flags.DEFINE_integer('num_hidden2', 25,
                             'Number of nodes in the second hidden layer.')
+
 tf.app.flags.DEFINE_integer('num_hidden3', 15,
                             'Number of nodes in the third hidden layer.')
+
 FLAGS = tf.app.flags.FLAGS
 
 class fullprint:
@@ -183,21 +185,18 @@ def main(argv=None):
             print()
             print('Training.')
 
-        with fullprint():
-            print(s.run(w_hidden))
-            print(s.run(b_hidden))
-            print(s.run(w_hidden2))
-            print(s.run(b_hidden2))
-            print(s.run(w_out))
-            print(s.run(b_out))
+            with fullprint():
+                print(s.run(w_hidden))
+                print(s.run(b_hidden))
+                print(s.run(w_hidden2))
+                print(s.run(b_hidden2))
+                print(s.run(w_out))
+                print(s.run(b_out))
 
-        if verbose:
             print("Start training")
 
         # Iterate and train.
         for step in range(num_epochs * train_size // BATCH_SIZE):
-            if verbose:
-                print(step,)
 
             choice = np.random.choice(range(train_size), BATCH_SIZE)
             batch_data = train_data[choice, :]
