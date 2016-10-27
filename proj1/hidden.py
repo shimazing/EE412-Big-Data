@@ -2,10 +2,9 @@ import tensorflow.python.platform
 
 import numpy as np
 import tensorflow as tf
-import csv
-
+from helper import NUM_LABELS, extract_data, encode_data,\
+                      split_train_test, print_detail_result, fullprint
 # Global variables.
-NUM_LABELS = 10    # The number of labels.
 BATCH_SIZE = 2000  # The number of training examples to use per training step.
 
 tf.app.flags.DEFINE_string('train', None,
@@ -14,7 +13,7 @@ tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
 tf.app.flags.DEFINE_integer('num_epochs', 1500,
                             'Number of passes over the training data.')
-tf.app.flags.DEFINE_integer('num_hidden', 35,
+tf.app.flags.DEFINE_integer('num_hidden', 40,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
@@ -26,79 +25,17 @@ tf.app.flags.DEFINE_integer('num_hidden3', 15,
 
 FLAGS = tf.app.flags.FLAGS
 
-class fullprint:
-    '''context manager for printing full numpy arrays'''
-
-    def __enter__(self):
-        self.opt = np.get_printoptions()
-        np.set_printoptions(threshold=np.nan)
-
-    def __exit__(self, type, value, traceback):
-        np.set_printoptions(**self.opt)
-
-def binary_encoding(datum):
-    #datum is length 10 1-dim array
-    encoded = np.zeros(52)
-    cards = datum.reshape(5, 2)
-    for suit, rank in np.array(cards):
-        encoded[(suit - 1)* 13 + rank - 1] = 1
-    return encoded
-
-def encoding_data(X):
-    encoded_data = np.zeros((X.shape[0], 52))
-    for i, datum in enumerate(X):
-        encoded_data[i] = binary_encoding(datum)
-    return encoded_data
-
-
-#   label, feat_0, feat_1, ..., feat_n
-def extract_data(filename):
-
-    with open(filename, 'r') as raw_file:
-        reader = csv.reader(raw_file, delimiter=',')
-        raw_data = np.array(list(reader)[1:]).astype(np.float32)
-
-    fvecs_np = raw_data[:, :10]
-    labels_np = raw_data[:, 10].astype(dtype=np.uint8)
-
-    # Convert the int numpy array into a one-hot matrix.
-    labels_onehot = (np.arange(NUM_LABELS) == labels_np[:, None]).astype(np.float32)
-
-    # Return a pair of the feature matrix and the one-hot label matrix.
-    return fvecs_np,labels_onehot
-
-def split_train_test(X, y, p=0.1):
-    train_size = X.shape[0]
-    test_size = int(train_size * p)
-    indices = np.random.permutation(train_size)
-    test_idx, train_idx = indices[:test_size], indices[test_size:]
-
-    test_X = X[test_idx,:]
-    test_y = y[test_idx]
-
-    train_X = X[train_idx,:]
-    train_y = y[train_idx]
-
-    return train_X, train_y, test_X, test_y
-
-
-def result_table(pred, ori):
-    result = np.zeros((10,10)).astype(int)
-    for i, j in zip(pred, ori):
-        result[i,j] += 1
-
-    with fullprint():
-        print(result)
 
 # Init weights method. (Lifted from Delip Rao: http://deliprao.com/archives/100)
-def init_weights(shape, init_method='positive'):
+def init_weights(shape, init_method='positive', name=None):
     if init_method == 'zeros':
-        return tf.Variable(tf.zeros(shape, dtype=tf.float32))
+        return tf.Variable(tf.zeros(shape, dtype=tf.float32), name=name)
     elif init_method == 'uniform':
-        return tf.Variable(tf.random_normal(shape, stddev=0.01, dtype=tf.float32))
+        return tf.Variable(tf.random_normal(shape, stddev=0.01,
+                                            dtype=tf.float32), name=name)
     elif init_method == 'positive':
-        return tf.Variable(tf.random_normal(shape, mean=0.02, stddev=0.01,\
-                                            dtype=tf.float32)) #0.02
+        return tf.Variable(tf.random_normal(shape, mean=0.02, stddev=0.01,
+                                            dtype=tf.float32), name=name) #0.02
 
 def main(argv=None):
     # Be verbose?
@@ -118,8 +55,8 @@ def main(argv=None):
             split_train_test(X, y, p=0.2)
 
     # one hot encoding
-    train_data = encoding_data(train_data)
-    test_data = encoding_data(test_data)
+    train_data = encode_data(train_data)
+    test_data = encode_data(test_data)
 
     # Get the shape of the training data.
     train_size,num_features = train_data.shape
@@ -146,13 +83,15 @@ def main(argv=None):
     # Initialize the hidden weights and biases.
 
     # Make 1st hidden layer and op
-    w_hidden = init_weights([num_features, num_hidden], 'positive')
-    b_hidden = init_weights([1, num_hidden],'positive')
+    w_hidden = init_weights([num_features, num_hidden], 'positive',
+                            name='w_hidden')
+    b_hidden = init_weights([1, num_hidden],'positive', name='b_hidden')
     hidden = tf.nn.relu(tf.matmul(x,w_hidden) + b_hidden)
 
     # Make 2nd hidden layer and op
-    w_hidden2 = init_weights([num_hidden, num_hidden2],'positive')
-    b_hidden2 = init_weights([1,num_hidden2], 'positive')
+    w_hidden2 = init_weights([num_hidden, num_hidden2],'positive',
+                             name='w_hidden2')
+    b_hidden2 = init_weights([1,num_hidden2], 'positive', name='b_hidden2')
     hidden2 = tf.nn.relu(tf.matmul(hidden, w_hidden2) + b_hidden2)
 
     # Make 3rd hidden layer and op
@@ -161,8 +100,8 @@ def main(argv=None):
     hidden3 = tf.nn.relu(tf.matmul(hidden2, w_hidden3) + b_hidden3)
 
     # Output layer
-    w_out = init_weights([num_hidden2, NUM_LABELS],'positive')
-    b_out = init_weights([1,NUM_LABELS],'positive')
+    w_out = init_weights([num_hidden2, NUM_LABELS],'positive', name='w_out')
+    b_out = init_weights([1,NUM_LABELS],'positive', name='b_out')
     y = tf.nn.log_softmax(tf.matmul(hidden2, w_out) + b_out)
 
     # Optimization.
@@ -215,19 +154,21 @@ def main(argv=None):
             test_labels}))
 
         # result table
-        pred_train_y, real_train_y = s.run([tf.argmax(y,1),tf.argmax(y_,1)],\
-                feed_dict={x: train_data, y_: train_labels})
-        pred_test_y, real_test_y = s.run([tf.argmax(y,1), tf.argmax(y_,1)],\
-                feed_dict={x: test_data, y_: test_labels})
 
-        result_table(pred_train_y, real_train_y)
-        result_table(pred_test_y, real_test_y)
+        if verbose:
+            pred_train_y, real_train_y = s.run([tf.argmax(y,1),tf.argmax(y_,1)],\
+                    feed_dict={x: train_data, y_: train_labels})
+            pred_test_y, real_test_y = s.run([tf.argmax(y,1), tf.argmax(y_,1)],\
+                    feed_dict={x: test_data, y_: test_labels})
+            print_detail_result(pred_train_y, real_train_y)
+            print_detail_result(pred_test_y, real_test_y)
 
         # save trained model
 
         saver = tf.train.Saver()
         save_path = saver.save(s, 'poker.ckpt')
-        print('poker hand classifier saved in file {}'.format(save_path))
+        if verbose:
+            print('poker hand classifier saved in file {}'.format(save_path))
 
 if __name__ == '__main__':
     tf.app.run()
