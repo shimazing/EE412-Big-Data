@@ -8,13 +8,13 @@ perm = itertools.permutations
 
 # Global variables.
 NUM_LABELS = 10    # The number of labels.
-BATCH_SIZE = 18000  # The number of training examples to use per training step.
+BATCH_SIZE = 2000  # The number of training examples to use per training step.
 
 tf.app.flags.DEFINE_string('train', None,
                            'File containing the training data (labels & features).')
 tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
-tf.app.flags.DEFINE_integer('num_epochs', 2000,
+tf.app.flags.DEFINE_integer('num_epochs', 1000,
                             'Number of passes over the training data.')
 tf.app.flags.DEFINE_integer('num_hidden', 30,
                             'Number of nodes in the hidden layer.')
