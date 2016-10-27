@@ -15,18 +15,33 @@ class fullprint:
         np.set_printoptions(**self.opt)
 
 def binary_encoding(datum):
-
     encoded = np.zeros(52)
     cards = datum.reshape(5, 2)
     for suit, rank in np.array(cards):
         encoded[(suit - 1)* 13 + rank - 1] = 1
     return encoded
 
+def decoding(datum):
+    decoded = np.zeros(NUM_LABELS)
+    cards, = np.where(datum == 1)
+    for i, card in enumerate(cards):
+        rank = card % 13 + 1
+        suit = card // 13 + 1
+        decoded[2*i] = suit
+        decoded[2*i + 1] = rank
+    return decoded.astype(int)
+
 def encode_data(X):
     encoded_data = np.zeros((X.shape[0], 52))
     for i, datum in enumerate(X):
         encoded_data[i] = binary_encoding(datum)
     return encoded_data
+
+def decode_data(X):
+    decoded_data = np.zeros((X.shape[0], NUM_LABELS))
+    for i, datum in enumerate(X):
+        decoded_data[i] = decoding(datum)
+    return decoded_data
 
 def extract_data(filename, is_train=True):
 
