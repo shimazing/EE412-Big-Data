@@ -24,7 +24,7 @@ def encoding_data(X):
 
 with open ('training_modified.csv', 'r') as raw_file:
     reader = csv.reader(raw_file, delimiter=',')
-    raw_data = np.array(list(reader)[1:]).astype(int)
+    raw_data = np.array(list(reader)[1:]).astype(np.float32)
 
 print(raw_data)
 print(raw_data.shape)
@@ -34,8 +34,8 @@ print(raw_data.shape)
 test_X = raw_data[:4000, :10]
 train_X = raw_data[4000:, :10]
 
-test_y = raw_data[:4000, 10]
-train_y = raw_data[4000:, 10]
+test_y = raw_data[:4000, 10].astype(np.int64)
+train_y = raw_data[4000:, 10].astype(np.int64)
 
 #for1 = test_X[test_y==1]
 #for2 = test_X[test_y==2]
@@ -47,7 +47,7 @@ train_y = raw_data[4000:, 10]
 #test_X = encoding_data:q(test_X)
 #train_X = encoding_data(train_X)
 
-"""
+
 num_test, dim = test_X.shape
 num_train = train_X.shape[0]
 
@@ -63,22 +63,22 @@ my_svm = LinearSVM()
 history = my_svm.train(train_X, train_y, num_iters=800, verbose=True, reg=1e-6)
 test_pred = my_svm.predict(test_X)
 
-kernel_svm = svm.SVC(kernel='poly', degree=2,
-        class_weight={0:1, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:10, 9:10},
-        verbose=True)
+#kernel_svm = svm.SVC(kernel='poly', degree=2,
+#        class_weight={0:1, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:10, 9:10},
+#        verbose=True)
 
-kernel_svm.fit(train_X, train_y)
-svm_pred = kernel_svm.predict(test_X)
+#kernel_svm.fit(train_X, train_y)
+#svm_pred = kernel_svm.predict(test_X)
 
 
 dt_accuracy = np.mean(test_y == dt_pred)
 test_accuracy = np.mean(test_y == test_pred)
-svm_accuracy = np.mean(test_y == svm_pred)
+#svm_accuracy = np.mean(test_y == svm_pred)
 
 print(test_accuracy)
 print(dt_accuracy)
-print(svm_accuracy)
-"""
+#print(svm_accuracy)
+
 
 """
 with open('result.csv', 'w') as result_file:

@@ -20,7 +20,7 @@ tf.app.flags.DEFINE_integer('num_hidden', 30,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 15,
+tf.app.flags.DEFINE_integer('num_hidden2', 20,
                             'Number of nodes in the second hidden layer.')
 tf.app.flags.DEFINE_integer('num_hidden3', 15,
                             'Number of nodes in the third hidden layer.')
@@ -51,15 +51,6 @@ def encoding_data(X):
     return encoded_data
 
 
-
-def data_augment(one):
-    """
-    one data will be 5! data (permutated)
-
-    """
-    np.array(perm(one.reshape(5,2)))
-    pass
-
 #   label, feat_0, feat_1, ..., feat_n
 def extract_data(filename):
 
@@ -85,7 +76,7 @@ def extract_data(filename):
     labels_onehot = (np.arange(NUM_LABELS) == labels_np[:, None]).astype(np.float32)
 
     # Return a pair of the feature matrix and the one-hot label matrix.
-    print(fvecs_np, labels_onehot)
+    #print(fvecs_np, labels_onehot)
     return fvecs_np,labels_onehot
 
 def result_table(pred, ori):
@@ -104,7 +95,7 @@ def init_weights(shape, init_method='xavier', xavier_params = (None, None)):
         return tf.Variable(tf.random_normal(shape, stddev=0.01, dtype=tf.float32))
     elif init_method == 'positive':
         return tf.Variable(tf.random_normal(shape, mean=0.02, stddev=0.01,\
-                                            dtype=tf.float32))
+                                            dtype=tf.float32)) #0.02
     else: #xavier
         (fan_in, fan_out) = xavier_params
         low = -0.1*np.sqrt(1.0/(fan_in + fan_out)) # {sigmoid:4, tanh:1}
@@ -183,19 +174,18 @@ def main(argv=None):
 
     # Initialize the output weights and biases.
     w_out = init_weights(
-        [num_hidden, NUM_LABELS],
+        [num_hidden2, NUM_LABELS],
         'positive')#,
         #xavier_params=(num_hidden2, NUM_LABELS))
 
     b_out = init_weights([1,NUM_LABELS],'positive')
 
     # The output layer.
-    y = tf.nn.log_softmax(tf.matmul(hidden, w_out) + b_out)
+    y = tf.nn.log_softmax(tf.matmul(hidden2, w_out) + b_out)
 
     # Optimization.
     cross_entropy = -tf.reduce_sum(y_*y)
     train_step = tf.train.AdamOptimizer(0.01).minimize(cross_entropy)
-
     # Evaluation.
     correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
@@ -209,11 +199,13 @@ def main(argv=None):
             print()
             print('Training.')
 
-        print(s.run(w_hidden))
-        print(s.run(w_hidden2))
-        print(s.run(w_hidden3))
-        print(s.run(w_out))
-
+        with fullprint():
+            print(s.run(w_hidden))
+            print(s.run(b_hidden))
+            print(s.run(w_hidden2))
+            print(s.run(b_hidden2))
+            print(s.run(w_out))
+            print(s.run(b_out))
         print("Start training")
 
         # Iterate and train.
@@ -233,8 +225,9 @@ def main(argv=None):
                 print(s.run([hidden, cross_entropy,y,tf.argmax(y_,1),accuracy],
                               feed_dict={x: batch_data, y_: batch_labels}))
             acc = accuracy.eval(feed_dict={x: batch_data, y_: batch_labels})
-            if acc > 0.8 and step % 20 == 0:
+            if acc > 0.85 and step % 100 == 0:
                 print(step, acc)
+                pass
 
         # Print out train and test accuracy
         print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
