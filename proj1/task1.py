@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-
+import csv
 import tensorflow.python.platform
 from helper import NUM_LABELS, extract_data, encode_data, fullprint
 
@@ -8,10 +8,10 @@ from helper import NUM_LABELS, extract_data, encode_data, fullprint
 tf.app.flags.DEFINE_string('test', None,'Test file name')
 tf.app.flags.DEFINE_string('ckpt', 'poker.ckpt', 'Trained model')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output')
-tf.app.flags.DEFINE_integer('num_hidden', 40,
+tf.app.flags.DEFINE_integer('num_hidden', 35,
                                     'Number of nodes in the hidden layer.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 25,
+tf.app.flags.DEFINE_integer('num_hidden2', 20,
                                     'Number of nodes in the second hidden layer.')
 FLAGS = tf.app.flags.FLAGS
 
@@ -55,9 +55,14 @@ def main(args=None):
         if verbose:
             print(">>> Trained model restored...")
 
-        prediction = sess.run(prediction, feed_dict={x: X})
+        pred = sess.run(prediction, feed_dict={x: X})
+
+    if verbose:
         with fullprint():
-            print(prediction)
+            print(pred)
+    with open("test_result.txt", 'w') as f:
+        for i, result in enumerate(pred):
+            f.write('Data {}: Hand {}\n'.format(i+1, result))
 
 
 if __name__ == '__main__':

@@ -8,10 +8,10 @@ from helper import NUM_LABELS, extract_data, encode_data, decode_data, fullprint
 tf.app.flags.DEFINE_string('filename', None,'Input file name')
 tf.app.flags.DEFINE_string('ckpt', 'poker.ckpt', 'Trained model')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output')
-tf.app.flags.DEFINE_integer('num_hidden', 40,
+tf.app.flags.DEFINE_integer('num_hidden', 35,
                                     'Number of nodes in the hidden layer.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 25,
+tf.app.flags.DEFINE_integer('num_hidden2', 20,
                                     'Number of nodes in the second hidden layer.')
 FLAGS = tf.app.flags.FLAGS
 
@@ -19,12 +19,14 @@ def modify_cards(cards):
     ones, = np.where(cards == 1)
     zeros, = np.where(cards == 0)
     changes = []
+    # All possible change
     for i in ones:
         for j in zeros:
             tmp = np.copy(cards)
             tmp[i] = 0
             tmp[j] = 1
             changes.append(tmp)
+    # This list also include original cards set
     changes.append(np.copy(cards))
     return np.array(changes).astype(np.float32)
 
@@ -70,27 +72,27 @@ def main(args=None):
             print(">>> Trained model restored...")
 
         whole_modified = []
-        hands = []
+        # hands = []
         for cards in X:
             modified_lst = modify_cards(cards)
             pred = sess.run(prediction, feed_dict={x: modified_lst})
             max_idx = np.where(pred == np.amax(pred))[0][-1]
             max_hand = pred[max_idx]
             whole_modified.append(modified_lst[max_idx])
-            hands.append(max_hand)
+            # hands.append(max_hand)
         whole_modified = np.array(whole_modified)
         whole_modified = decode_data(np.array(whole_modified))
 
         with open('modified_' + filename, 'w', newline='') as modified_csv:
             writer = csv.writer(modified_csv, delimiter=',')
             writer.writerow(['S1', 'R1', 'S2', 'R2', 'S3', 'R3', 'S4', 'R4',
-                             'S5', 'R5', 'Hand'])
+                             'S5', 'R5']) #, 'Hand'])
             for i, modified in enumerate(whole_modified):
-                writer.writerow(list(modified) + [hands[i]])
+                writer.writerow(list(modified)) # + [hands[i]])
 
-
-        with fullprint():
-            print(whole_modified)
+        if verbose:
+            with fullprint():
+                print(whole_modified)
 
 
 if __name__ == '__main__':

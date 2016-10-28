@@ -13,16 +13,12 @@ tf.app.flags.DEFINE_string('test', None,
                            'File containing the test data (labels & features).')
 tf.app.flags.DEFINE_integer('num_epochs', 1500,
                             'Number of passes over the training data.')
-tf.app.flags.DEFINE_integer('num_hidden', 40,
+tf.app.flags.DEFINE_integer('num_hidden', 35,
                             'Number of nodes in the hidden layer.')
 tf.app.flags.DEFINE_boolean('verbose', False, 'Produce verbose output.')
 
-tf.app.flags.DEFINE_integer('num_hidden2', 25,
+tf.app.flags.DEFINE_integer('num_hidden2', 20,
                             'Number of nodes in the second hidden layer.')
-
-tf.app.flags.DEFINE_integer('num_hidden3', 15,
-                            'Number of nodes in the third hidden layer.')
-
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -52,7 +48,7 @@ def main(argv=None):
 
     # randomly split train and test data with some rate p
     train_data, train_labels, test_data, test_labels = \
-            split_train_test(X, y, p=0.2)
+            split_train_test(X, y, p=0)
 
     # one hot encoding
     train_data = encode_data(train_data)
@@ -67,7 +63,6 @@ def main(argv=None):
     # Get the size of layer one.
     num_hidden = FLAGS.num_hidden
     num_hidden2 = FLAGS.num_hidden2
-    num_hidden3 = FLAGS.num_hidden3
 
     # This is where training samples and labels are fed to the graph.
     # These placeholder nodes will be fed a batch of training data at each
@@ -80,8 +75,6 @@ def main(argv=None):
 
     # Define and initialize the network.
 
-    # Initialize the hidden weights and biases.
-
     # Make 1st hidden layer and op
     w_hidden = init_weights([num_features, num_hidden], 'positive',
                             name='w_hidden')
@@ -93,11 +86,6 @@ def main(argv=None):
                              name='w_hidden2')
     b_hidden2 = init_weights([1,num_hidden2], 'positive', name='b_hidden2')
     hidden2 = tf.nn.relu(tf.matmul(hidden, w_hidden2) + b_hidden2)
-
-    # Make 3rd hidden layer and op
-    w_hidden3 = init_weights([num_hidden2, num_hidden3],'positive')
-    b_hidden3 = init_weights([1, num_hidden3], 'positive')
-    hidden3 = tf.nn.relu(tf.matmul(hidden2, w_hidden3) + b_hidden3)
 
     # Output layer
     w_out = init_weights([num_hidden2, NUM_LABELS],'positive', name='w_out')
@@ -148,10 +136,12 @@ def main(argv=None):
                     print(step, acc)
 
         # Print out train and test accuracy
-        print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
-            train_labels}))
-        print("Accuracy:", accuracy.eval(feed_dict={x: test_data, y_:\
-            test_labels}))
+
+        if verbose:
+            print("Train Accuracy:", accuracy.eval(feed_dict={x: train_data, y_:\
+                train_labels}))
+            print("Accuracy:", accuracy.eval(feed_dict={x: test_data, y_:\
+                test_labels}))
 
         # result table
 
